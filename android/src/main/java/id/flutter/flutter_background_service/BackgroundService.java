@@ -148,25 +148,29 @@ public class BackgroundService extends Service implements MethodChannel.MethodCa
     }
 
     protected void updateNotificationInfo() {
-        if (config.isForeground()) {
-            String packageName = getApplicationContext().getPackageName();
-            Intent i = getPackageManager().getLaunchIntentForPackage(packageName);
+        try {
+            if (config.isForeground()) {
+                String packageName = getApplicationContext().getPackageName();
+                Intent i = getPackageManager().getLaunchIntentForPackage(packageName);
 
-            int flags = PendingIntent.FLAG_CANCEL_CURRENT;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                flags |= PendingIntent.FLAG_MUTABLE;
+                int flags = PendingIntent.FLAG_CANCEL_CURRENT;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    flags |= PendingIntent.FLAG_MUTABLE;
+                }
+
+                PendingIntent pi = PendingIntent.getActivity(BackgroundService.this, 11, i, flags);
+                NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this, notificationChannelId)
+                        .setSmallIcon(R.drawable.ic_bg_service_small)
+                        .setAutoCancel(true)
+                        .setOngoing(true)
+                        .setContentTitle(notificationTitle)
+                        .setContentText(notificationContent)
+                        .setContentIntent(pi);
+
+                startForeground(notificationId, mBuilder.build());
             }
-
-            PendingIntent pi = PendingIntent.getActivity(BackgroundService.this, 11, i, flags);
-            NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this, notificationChannelId)
-                    .setSmallIcon(R.drawable.ic_bg_service_small)
-                    .setAutoCancel(true)
-                    .setOngoing(true)
-                    .setContentTitle(notificationTitle)
-                    .setContentText(notificationContent)
-                    .setContentIntent(pi);
-
-            startForeground(notificationId, mBuilder.build());
+        } catch (Exception e) {
+            Log.e(TAG, "Error While getting");
         }
     }
 
